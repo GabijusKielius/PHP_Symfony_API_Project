@@ -32,6 +32,11 @@ class Product
      */
     private $price;
 
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $weatherCondition;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -69,6 +74,18 @@ class Product
     public function setPrice(float $price): self
     {
         $this->price = $price;
+
+        return $this;
+    }
+
+    public function getWeatherCondition(): ?int
+    {
+        return $this->weatherCondition;
+    }
+
+    public function setWeatherCondition(int $weatherCondition): self
+    {
+        $this->weatherCondition = $weatherCondition;
 
         return $this;
     }
