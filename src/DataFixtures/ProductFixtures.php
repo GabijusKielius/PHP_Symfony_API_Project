@@ -2,6 +2,7 @@
 
 namespace App\DataFixtures;
 
+use App\Enum\WeatherConditionEnum;
 use Faker\Factory;
 use App\Entity\Product;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -18,11 +19,16 @@ class ProductFixtures extends Fixture
     public function load(ObjectManager $manager)
     {
         $faker = Factory::create();
-        $product = new Product();
-        $product->setName($faker->randomElement(self::$productNames));
-        $product->setSku($faker->uuid);
-        $product->setPrice($faker->randomFloat(2,0.01,100000));
-        $manager->persist($product);
+
+        for ($i = 0; $i < 100; $i++)
+        {
+            $product = new Product();
+            $product->setName($faker->randomElement(self::$productNames));
+            $product->setSku($faker->uuid);
+            $product->setPrice($faker->randomFloat(2,0.01,500));
+            $product->setWeatherCondition($faker->randomElement(WeatherConditionEnum::getAllWeatherConditions()));
+            $manager->persist($product);
+        }
 
         $manager->flush();
     }
