@@ -20,20 +20,17 @@ class ProductApiController extends AbstractController
             "https://api.meteo.lt/v1/places/${city}/forecasts/long-term"
         );
 
-        //TODO: Check if there is content
+        try {
+            $weatherData = json_decode($response->getContent(), true);
 
-        //TODO: if there is then find recommended products
-
-        /** @var array $products */
-        $products = $weatherProductRecommendationService->getRecommendedProductsFromWeatherData($response->getContent());
-
-        //TODO: else return response with errror
-
+            $responseContent = $weatherProductRecommendationService->getRecommendedProductsFromWeatherData($weatherData);
+        }catch (\Exception $e){
+            $responseContent = ['error'=> $e->getMessage()];
+        }
 
         return new JsonResponse(
             [
-                "city" => $city,
-                "products" => $products,
+                $responseContent
             ]
         );
     }
