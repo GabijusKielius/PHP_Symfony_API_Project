@@ -10,6 +10,8 @@ use Doctrine\Persistence\ObjectManager;
 
 class ProductFixtures extends Fixture
 {
+    const AMOUNT_TO_GENERATE = 100;
+
     private static $productNames = [
         'Red Hat',
         'Black Umbrella',
@@ -20,7 +22,7 @@ class ProductFixtures extends Fixture
     {
         $faker = Factory::create();
 
-        for ($i = 0; $i < 100; $i++)
+        for ($i = 0; $i < self::AMOUNT_TO_GENERATE; $i++)
         {
             $product = new Product();
             $product->setName($faker->randomElement(self::$productNames));
