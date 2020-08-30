@@ -3,17 +3,22 @@
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
 class ProductApiController extends AbstractController
 {
     /**
-     * @Route("/product/api", name="product_api")
+     * @Route("/api/products/{city}", requirements={"city": "^\w+$"}, name="product_api", methods={"POST", "GET"})
      */
-    public function index()
+    public function index(string $city)
     {
-        return $this->render('product_api/index.html.twig', [
-            'controller_name' => 'ProductApiController',
-        ]);
+        dump($city);
+
+        return new JsonResponse(
+            [
+                "city" => $city
+            ]
+        );
     }
 }
