@@ -15,7 +15,12 @@ class ProductFixtures extends Fixture
     private static $productNames = [
         'Red Hat',
         'Black Umbrella',
-        'Big boy boots'
+        'Big Boy Boots',
+        'Pink Hat',
+        'Synergistic Leather Hat',
+        'Heavy Duty Iron Hat',
+        'Leather Jacket',
+        'Flip-flops'
     ];
 
     public function load(ObjectManager $manager)
