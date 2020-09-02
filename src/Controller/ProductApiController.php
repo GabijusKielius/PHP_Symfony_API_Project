@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\API\MeteoForecastApi;
 use App\Service\WeatherProductRecommendationService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -13,16 +14,10 @@ class ProductApiController extends AbstractController
     /**
      * @Route("/api/products/{city}", requirements={"city": "^\w+$"}, name="product_api", methods={"POST", "GET"})
      */
-    public function index(string $city, HttpClientInterface $client, WeatherProductRecommendationService $weatherProductRecommendationService)
+    public function index(string $city,MeteoForecastApi $forecastApi,WeatherProductRecommendationService $weatherProductRecommendationService)
     {
-        $response = $client->request(
-            'GET',
-            "https://api.meteo.lt/v1/places/${city}/forecasts/long-term"
-        );
-
         try {
-            $weatherData = json_decode($response->getContent(), true);
-
+            $weatherData = $forecastApi->getForecastDataInArray($city);
             $responseContent = $weatherProductRecommendationService->getRecommendedProductsFromWeatherData($weatherData);
         }catch (\Exception $e){
             $responseContent = ['error'=> $e->getMessage()];
