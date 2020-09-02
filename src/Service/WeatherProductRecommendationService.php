@@ -4,49 +4,87 @@
 namespace App\Service;
 
 
-use App\DTO\WeatherDTO;
+use App\Repository\ProductRepository;
+use App\Service\API\MeteoForecastApi;
+use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class WeatherProductRecommendationService
 {
+    /**
+     * @var MeteoForecastApi
+     */
+    private $forecastApi;
+    /**
+     * @var ProductRepository
+     */
+    private $productRepository;
+    /**
+     * @var Serializer
+     */
+    private $serializer;
+
+    public function __construct(
+        MeteoForecastApi $forecastApi,
+        ProductRepository $productRepository,
+        SerializerInterface $serializer
+    ) {
+        $this->forecastApi = $forecastApi;
+        $this->productRepository = $productRepository;
+        $this->serializer = $serializer;
+    }
+
     public function getRecommendedProductsFromWeatherData(array $weatherData)
     {
-        // TODO: Return JSON Of recommended products
-        // $dto = new WeatherDTO($weatherData);
+        $forecastCountArray = $this->getConditionOccurrencesArray($weatherData);
 
-        dump($weatherData['']);
+        return $this->getRecommendationsFromMostOccurringWeatherCondition($forecastCountArray);
+    }
 
-        //TODO: Array of weather data
-        //TODO: 1. Transfer weather data to DTO, for increased readability and stability
-        //TODO: 2. Cycle trough [3 days] and get most array of weather contitions
-        /*
-         * [
-         * "2020-08-30" = [
-         *      WeatherConditionEnum::rain => 5 (hours),
-         *      WeatherConditionEnum::sunny => 2 (hours),
-         *      WeatherConditionEnum::sunny => 2 (hours),
-         *      ]
-         * "2020-08-30" = [
-         *      WeatherConditionEnum::rain => 5 (hours),
-         *      WeatherConditionEnum::cloudy => 8 (hours),
-         *      WeatherConditionEnum::sleek => 10 (hours),
-         *      ]
-         * ]
-         */
-        //TODO: 3. Sort (Array above) get most frequent WeatherCondition
-        //TODO: 4. Find products for the most frequent WeatherCondition  (Option: Seperate service)
-        //TODO: 5. Format ARRAYS to fit example JSON
-        /*
-         * [
-         *  city:
-         *  recommendations: [
-         *       weather_forecast:
-         *      date:
-         *      producst: [calculatedProducs]
-         *      ]
-         * ]
-         */
+    private function getConditionOccurrencesArray(array $weatherData): array
+    {
+        $forecastKeyArray = [];
+        $forecastCountArray = [];
 
+        foreach ($weatherData as $x) {
+            $date = new \DateTime($x[$this->forecastApi->forecastTime]);
+            $forecastKeyArray[$date->format("Y-m-d")][] = $x[$this->forecastApi->forecastConditionType];
+        }
 
-        return null;
+        foreach ($forecastKeyArray as $key => $date) {
+            $weatherConditionOccurrenceArray = array_count_values($date);
+
+            array_multisort($weatherConditionOccurrenceArray, SORT_DESC);
+
+            $forecastCountArray[$key] = $weatherConditionOccurrenceArray;
+        }
+        return $forecastCountArray;
+    }
+
+    private function getRecommendationsFromMostOccurringWeatherCondition(array $forecastCountArray): array
+    {
+        $recommendations = [];
+        $dateEnd = new \DateTime('+2 day');
+
+        foreach ($forecastCountArray as $date => $occurrenceArray) {
+
+            $dateInDateTime = new \DateTime($date);
+
+           if($dateInDateTime < $dateEnd){
+            $recommendation = [];
+
+            $mostOccurringWeatherCondition = array_keys($occurrenceArray)[0];
+            $mostOccurringWeatherConditionEnum = $this->forecastApi->getWeatherConditionEnum(
+                $mostOccurringWeatherCondition
+            );
+            $recommendation['weather_forecast'] = $mostOccurringWeatherCondition;
+            $recommendation['date'] = $date;
+            $recommendation['products'] = $this->productRepository->findAllProductsByWeatherCondition($mostOccurringWeatherConditionEnum);
+
+            $recommendations[] = $recommendation;
+           }
+        }
+
+        return $recommendations;
     }
 }
